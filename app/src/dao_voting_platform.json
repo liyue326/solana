@@ -1,0 +1,166 @@
+{
+    "version": "0.1.0",
+    "name": "dao_voting_platform",
+    "instructions": [
+      {
+        "name": "createVote",
+        "accounts": [
+          {
+            "name": "authority",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "vote",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "options",
+            "type": {
+              "vec": "string"
+            }
+          },
+          {
+            "name": "endTime",
+            "type": "i64"
+          }
+        ]
+      },
+      {
+        "name": "castVote",
+        "accounts": [
+          {
+            "name": "voter",
+            "isMut": true,
+            "isSigner": true
+          },
+          {
+            "name": "vote",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "voterRecord",
+            "isMut": true,
+            "isSigner": false
+          },
+          {
+            "name": "systemProgram",
+            "isMut": false,
+            "isSigner": false
+          }
+        ],
+        "args": [
+          {
+            "name": "optionIndex",
+            "type": "u8"
+          }
+        ]
+      }
+    ],
+    "accounts": [
+      {
+        "name": "Vote",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "authority",
+              "type": "publicKey"
+            },
+            {
+              "name": "title",
+              "type": "string"
+            },
+            {
+              "name": "description",
+              "type": "string"
+            },
+            {
+              "name": "options",
+              "type": {
+                "vec": "string"
+              }
+            },
+            {
+              "name": "voteCounts",
+              "type": {
+                "vec": "u32"
+              }
+            },
+            {
+              "name": "totalVotes",
+              "type": "u32"
+            },
+            {
+              "name": "createdAt",
+              "type": "i64"
+            },
+            {
+              "name": "endTime",
+              "type": "i64"
+            },
+            {
+              "name": "isActive",
+              "type": "bool"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            }
+          ]
+        }
+      },
+      {
+        "name": "VoterRecord",
+        "type": {
+          "kind": "struct",
+          "fields": [
+            {
+              "name": "voter",
+              "type": "publicKey"
+            },
+            {
+              "name": "vote",
+              "type": "publicKey"
+            },
+            {
+              "name": "optionIndex",
+              "type": "u8"
+            },
+            {
+              "name": "hasVoted",
+              "type": "bool"
+            },
+            {
+              "name": "votedAt",
+              "type": "i64"
+            },
+            {
+              "name": "bump",
+              "type": "u8"
+            }
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "address": "11111111111111111111111111111111"
+    }
+  }
