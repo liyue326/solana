@@ -5,6 +5,9 @@ import { PublicKey } from '@solana/web3.js';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import idl from './dao_voting_platform.json';
 
+// 程序 ID（从 IDL 自动读取，部署时会自动更新）
+const PROGRAM_ID = new PublicKey(idl.metadata.address);
+
 function App() {
   const { connection } = useConnection();
   const wallet = useWallet();
@@ -20,17 +23,43 @@ function App() {
 
   // 初始化程序
   useEffect(() => {
-    if (wallet && connection) {
+    // 只有当钱包已连接且有公钥时才初始化
+    if (wallet?.connected && wallet?.publicKey && connection) {
       try {
-        const provider = new AnchorProvider(connection, wallet, {});
-        const program = new Program(idl, provider);
+        // 确保 wallet 对象是有效的 AnchorProvider 钱包适配器
+        const provider = new AnchorProvider(
+          connection,
+          wallet,
+          {
+            commitment: 'confirmed',
+            preflightCommitment: 'confirmed',
+          }
+        );
+        // 从 IDL 自动读取程序 ID（部署时会自动更新）
+        const program = new Program(idl, PROGRAM_ID, provider);
         setProgram(program);
         fetchVotes(program);
       } catch (error) {
         console.error('初始化程序失败:', error);
+        console.error('错误详情:', {
+          message: error.message,
+          stack: error.stack,
+          wallet: {
+            connected: wallet?.connected,
+            publicKey: wallet?.publicKey?.toString(),
+            adapter: wallet?.adapter?.name,
+          },
+          connection: connection ? '已连接' : '未连接',
+        });
       }
+    } else if (wallet && !wallet.connected) {
+      // 如果钱包对象存在但未连接，清空程序
+      setProgram(null);
+      setVotes([]);
     }
-  }, [wallet, connection]);
+  }, [wallet?.connected, wallet?.publicKey, connection]);
+
+  const utf8Seed = (text) => new TextEncoder().encode(text);
 
   const fetchVotes = async (programInstance) => {
     try {
@@ -65,7 +94,7 @@ function App() {
       const endTime = Math.floor(Date.now() / 1000) + (duration * 3600);
       
       const [votePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('vote'), wallet.publicKey.toBuffer(), Buffer.from(title)],
+        [utf8Seed('vote'), (wallet.publicKey.toBytes ? wallet.publicKey.toBytes() : wallet.publicKey.toBuffer()), utf8Seed(title)],
         program.programId
       );
 
@@ -107,7 +136,7 @@ function App() {
     try {
       const votePubkey = new PublicKey(votePublicKey);
       const [voterRecordPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('voter'), votePubkey.toBuffer(), wallet.publicKey.toBuffer()],
+        [utf8Seed('voter'), (votePubkey.toBytes ? votePubkey.toBytes() : votePubkey.toBuffer()), (wallet.publicKey.toBytes ? wallet.publicKey.toBytes() : wallet.publicKey.toBuffer())],
         program.programId
       );
 
